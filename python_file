@@ -1,0 +1,33 @@
+import json
+import boto3
+
+def lambda_handler(event, context):
+
+    sts_connection = boto3.client('sts')
+    access_account = sts_connection.assume_role(
+        RoleArn = 'arn:aws:iam::001082169132:role/S3GetObjectAccess',
+        RoleSessionName = 'cross_acct_lambda'
+    )
+
+s3 = boto3.resource('s3')
+copy_source = {
+    'Bucket' : 'datagrokr-devops-technical-assignment-june-2021',
+    'key' : 'devops-assignment.json'
+}
+
+s3.meta.client.copy(copy_source, 'datagrokr-devops-technical-assignment-june-2021', 'devops-assignment.json')
+
+client = boto3.client('s3')
+bucket_name = 'datagrokr-devops-technical-assignment-june-2021'
+file_name = 'devops-assignment.json'
+
+s3_response = client.get_object(
+    Bucket = 'datagrokr-devops-technical-assignment-june-2021',
+    key = 'devops-assignment.json',
+)
+print("Response:", s3_response)
+
+file_data = s3_response["Body"].read().decode('utf')
+print("file_data:", file_data)
+
+return str(file_data).upper()
